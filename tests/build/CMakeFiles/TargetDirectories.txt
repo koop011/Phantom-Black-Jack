@@ -1,0 +1,3 @@
+/Users/LeLion/workspace/workspace/c++/blackJack/tests/build/CMakeFiles/Catch2.dir
+/Users/LeLion/workspace/workspace/c++/blackJack/tests/build/CMakeFiles/edit_cache.dir
+/Users/LeLion/workspace/workspace/c++/blackJack/tests/build/CMakeFiles/rebuild_cache.dir
