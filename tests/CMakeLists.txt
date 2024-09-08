@@ -1,6 +1,11 @@
-find_package(Boost REQUIRED)
-#set(Boost_INCLUDE_DIR "../include/boost")
-
-
-# link_directories(${CMAKE_SOURCE_DIR}/lib)
-add_executable(tests main.cpp)
+cmake_policy(SET CMP0167 OLD)
+set(Boost_USE_STATIC_LIBS        ON)
+set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME    OFF)
+find_package(Boost 1.86.0 REQUIRED COMPONENTS system filesystem unit_test_framework REQUIRED)
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+    add_executable(tests testCard.cpp testPlayer.cpp)
+    set_property(TARGET tests PROPERTY CXX_STANDARD 20)
+    target_link_libraries(tests ${Boost_LIBRARIES})
+endif()
