@@ -17,12 +17,17 @@
 
 class CardManagement {
 public:
-    void createDeck();
-    auto shuffle();
+    
     auto drawCard();
-    auto discardCard();
+    void removeCardFromDeck(Cards card);
+    void showDeck();
+    std::vector<Cards> getDeck();
+    void createDeck();
+    void shuffle();
+    Cards getCard();
 private:
     std::vector<Cards> deck;
+    std::vector<Cards> removedCards;
 };
 
 #endif /* createDeckOfCards_hpp */

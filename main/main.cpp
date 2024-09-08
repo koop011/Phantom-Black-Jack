@@ -2,8 +2,14 @@
 
 #include <iostream>
 #include <format>
+#include <string>
 #include "CardManagement.hpp"
-using namespace std;
+#include "Player.hpp"
+#include "Dealer.hpp"
+#include "Constants.h"
+#include <regex>
+
+using std::string;
 
 enum gameState : u_char {
     menu,
@@ -11,72 +17,157 @@ enum gameState : u_char {
     end
 };
 
-void numberOfPlayers(gameState& state, u_int& playerCount) {
-    cout << "How many players? \n";
-    cout << "[Insert number of players] \n";
-    cin >> playerCount;
-    cout << format("Dealing cards for {} players. \n", playerCount);
+int addPlayers(gameState *state) {
+    string userInput;
+    bool inputGiven = false;
+    int numberOfPlayers = 0;
+    std::regex integer("(\\+|-)?[[:digit:]]+");
+    // check if int is supplied
+    while (!inputGiven) {
+        inputGiven = false;
+        std::cout << "How many players? \n";
+        std::cout << "[Insert number of players] \n";
+        std::cin >> userInput;
+        
+        try {
+            // TODO: match with regex so no input with number + string can be matched
+            numberOfPlayers = stoi(userInput);
+            inputGiven = true;
+        } catch (std::invalid_argument) {
+            std::cout << Constants::invalidResponse;
+        }
+    }
     
-    state = gameState::playing;
+    std::cout << std::format("Dealing cards for {} players. \n", userInput);
+    
+    *state = gameState::playing;
+    return numberOfPlayers;
 }
 
-void gamePlay() {
+//void removePlayerFromGame(std::vector<Player> players, Player player, int index){
+//    if (player.checkWin() || player.checkWin()){
+//        players.erase(players.begin() + index);
+//    }
+//}
+
+void gamePlay(gameState *state, int numberOfPlayers) {
     CardManagement CM;
-    // shuffle/create the deck
+    
+//    Dealer dealer;
+    std::vector<Player> players;
+    int dealerPosition = numberOfPlayers; // size of players will give the final position in vector
+    bool initialRound = true;
+    Dealer dealer;
+    int initialRoundOffSet = 2;
+    // pre-shuffled
+    //std::vector playDeck = CM.getDeck();
     CM.createDeck();
+    CM.shuffle();
+    // debug
+    // CM.showDeck();
     
-    // depending on the player go around and give out 1 card each including the dealer (x2)
-    
-    // reveal the first card to players but have the 2nd card hidden
-    
-    // reveal the players card on their turn
-    
-    // receive player input to either hit or stay
-    
-    // if HIT calculate the result and if greater than 21, eliminate the player
-    
-    // if STAY move on to next player
-    
-    // when all player has given their choice, reveal 2nd card of dealer
-    // if at this point dealer has 21, the house wins
-    // if at this point a player has 21, it's a tie
-    // if at this point dealer doesn't have 21 but a player does, that player wins
-    
-    // continue going around receiving players choices (hit/stay)
-    
-    // continue until either house wins or loses
+    for (int playerPosition = 0; playerPosition < numberOfPlayers; ++playerPosition) {
+        Player singlePlayer(playerPosition);
+        players.push_back(singlePlayer);
+    }
+        
+    while (*state == gameState::playing) {
+        while (initialRound){
+            // initial hands deal
+            for (int initialDeal = 0; initialDeal < initialRoundOffSet; ++initialDeal){ // gives out 2 rounds of cards to players
+                for (auto& player : players){
+                    //if (&player != &players.back()) {
+                        player.receiveCard(CM.getCard());
+//                    } else {
+//
+//                    }
+                    
+                }
+                dealer.receiveCard(CM.getCard());
+            }
+            
+            // dealer shows hand
+            std::cout << "Dealers Hand: \n";
+            dealer.showHand(initialRound);
+            std::cout << "\n";
+            initialRound = false;
+        }
+        
+        // reveal the players card on their turn
+        // if receiving ace ask player to choose
+        
+        for (int playerPosition = 0; playerPosition < players.size(); ++playerPosition) {
+            
+            std::cout << "------------------------------------------\n";
+            std::cout << std::format("{}'s turn. \n", players[playerPosition].getName());
+            
+            players[playerPosition].showHand();
+            players[playerPosition].checkHand();
+            players[playerPosition].playTurn(&CM, playerPosition);
+        }
+        
+        std::cout << "------------------------------------------\n";
+        std::cout << std::format("{}'s turn. \n", dealer.getName());
+        dealer.playTurn(&CM);
+        
+        for (Player player : players) {
+            if (!player.lose && (player.checkTotal() > dealer.checkTotal())) {
+                player.playerWin();
+            } else if (!player.lose && (player.checkTotal() > dealer.checkTotal())) {
+                player.playerDraw();
+            } else {
+                dealer.dealerWin();
+            }
+        }
+    }
+    // replay
+    bool playAgain = false;
+    string playAgainInput;
+    while (!playAgain){
+        std::cout << "\nWould you like to play again? [y/n]\n";
+        std::cin >> playAgainInput;
+        if (playAgainInput.compare("y") && playAgainInput.compare("n")){
+            std::cout << Constants::invalidResponse;
+        } else {
+            *state = gameState::menu;
+        }
+    }
 }
 
 int main(int argc, const char * argv[]) {
     
     gameState state;
-    u_int players;
-    cout << "<<------------------------------------------------------>> \n";
-    cout << "               Welcome to Phantom Black Jack \n";
-    cout << "<<------------------------------------------------------>> \n\n";
-    cout << "Card instructions: \n";
-    cout << "   In Phantom Black Jack, card rank such as Jack, Queen, King are all valued at 10. \n";
-    cout << "   Cards will be represented with rank followed by the first letter of the suit. \n";
-    cout << "       e.g. 5 of Heart will be represented as 5H. \n";
-    cout << "       e.g. King of Heart will be represented as KH. \n";
-    cout << "   Additionally, if any cards are hidden, it'll be represented with []. \n\n";
-    cout << "As an example, the dealer will show 6 of spades and a hidden card as: \n";
-    cout << "   e.g. Dealer has: 6S [] \n\n";
+    int numberOfPlayers;
+    std::cout << "<<------------------------------------------------------>> \n";
+    std::cout << "               Welcome to Phantom Black Jack \n";
+    std::cout << "<<------------------------------------------------------>> \n\n";
+    std::cout << "Card instructions: \n";
+    std::cout << "   In Phantom Black Jack, card rank such as Jack, Queen, King are all valued at 10. \n";
+    std::cout << "   Cards will be represented with rank followed by the first letter of the suit. \n";
+    std::cout << "       e.g. 5 of Heart will be represented as 5H. \n";
+    std::cout << "       e.g. King of Heart will be represented as KH. \n";
+    std::cout << "   Additionally, if any cards are hidden, it'll be represented with []. \n\n";
+    std::cout << "As an example, the dealer will show 6 of spades and a hidden card as: \n";
+    std::cout << "   e.g. Dealer has: 6S [] \n\n";
     
     state = gameState::menu;
+    //state = gameState::playing;
     
-    switch (state) {
-        case gameState::menu:
-            numberOfPlayers(state, players);
-            break;
-        case gameState::playing:
-            
-            break;
-        case gameState::end:
-            break;
-        default:
-            break;
+    while (state != gameState::end){
+        switch (state) {
+            case gameState::menu:
+                numberOfPlayers = addPlayers(&state);
+                break;
+            case gameState::playing:
+                gamePlay(&state, numberOfPlayers);
+                break;
+            case gameState::end:
+                break;
+            default:
+                break;
+        }
     }
+    
     
     return 0;
 }

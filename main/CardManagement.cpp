@@ -8,44 +8,45 @@
 #include "CardManagement.hpp"
 #include <iostream>
 #include <vector>
-
-
-
+#include <random>
 
 void CardManagement::createDeck() {
     deck.clear();
     
     for (int suit = 0; suit < 4; ++suit) {  // 4 suits
         for (int rank = 0; rank < 13; ++rank) {  // 13 ranks
+//            deck.push_back(Cards{static_cast<Cards::Ranks>(rank), static_cast<Cards::Suits>(suit)});
+            // TODO: fix for loop
             deck.push_back(Cards{static_cast<Cards::Ranks>(rank), static_cast<Cards::Suits>(suit)});
         }
     }
 }
 
+void CardManagement::removeCardFromDeck(Cards card) {
+    deck.erase(deck.begin());
+    removedCards.push_back(card);
+}
 
+void CardManagement::shuffle() {
+    std::random_device rd;
+      //std::default_random_engine gen(rd);
 
-//int* CardManagement::get_deck_of_cards(){
-//    int deck[DeckOfCards];
-//    int sizeOfDeck = sizeof(deck)/sizeof(deck[0]);
-//    for (int i = 0; i < sizeOfDeck; ++i) {
-//        deck[i] = i;
-//        cout << deck[i] << endl;
-//    }
-//    return deck;
-//}
+    std::shuffle (deck.begin(), deck.end(), rd);
+}
 
+void CardManagement::showDeck() {
+    std::cout << deck.size() << "\n";
+    for (int cards = 0; cards < deck.size(); ++cards) {
+        std::cout << deck[cards].toString() << '\n';
+    }
+}
 
+Cards CardManagement::getCard(){
+    Cards front = deck.front();
+    removeCardFromDeck(front);
+    return front;
+}
 
-//std::vector<int> CardManagement::get_deck_of_cards() {
-//    static std::vector<int> arr(DeckOfCards);
-//    for (int i = 0; i < DeckOfCards; ++i) {
-//        arr[i] = i * 2;  // Example initialization
-//    }
-//    return arr;
-//}
-//
-//std::vector<int> CardManagement::get_house_of_cards() {
-//    std::vector<int> arr(HouseOfCards);
-//    
-//}
-
+std::vector<Cards> CardManagement::getDeck(){
+    return deck;
+}
