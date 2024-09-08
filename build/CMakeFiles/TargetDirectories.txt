@@ -1,5 +1,0 @@
-/Users/LeLion/workspace/workspace/c++/blackJack/build/CMakeFiles/edit_cache.dir
-/Users/LeLion/workspace/workspace/c++/blackJack/build/CMakeFiles/rebuild_cache.dir
-/Users/LeLion/workspace/workspace/c++/blackJack/build/tests/CMakeFiles/tests.dir
-/Users/LeLion/workspace/workspace/c++/blackJack/build/tests/CMakeFiles/edit_cache.dir
-/Users/LeLion/workspace/workspace/c++/blackJack/build/tests/CMakeFiles/rebuild_cache.dir
