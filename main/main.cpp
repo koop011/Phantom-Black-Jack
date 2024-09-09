@@ -196,7 +196,8 @@ void clearMemory(std::vector<Player> *players, Dealer *dealer)
 
 int main(int argc, const char *argv[])
 {
-
+    // TODO Logging
+    // TODO unit testing
     gameState state;
     std::vector<Player> players;
     Dealer dealer;
