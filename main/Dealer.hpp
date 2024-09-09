@@ -11,21 +11,26 @@
 #include <stdio.h>
 #include "Player.hpp"
 
-class Dealer : public Player {
+class Dealer : public Player
+{
 public:
-    Dealer() : Player(false) {
+    Dealer() : Player(false)
+    {
         name = "Dealer";
     }
+    std::string name;
     void setName();
     void showHand(bool initial = false); // override?
     bool gameProgressCheck();
-    void dealerWins();
+    // void dealerWins();
     void playTurn(CardManagement *CM);
     void checkHand();
     void dealerWin();
-    //void playTurn(CardManagement *CM, int playerPosition) override;
+    std::string getName();
+    void dealerLose();
+    // void playTurn(CardManagement *CM, int playerPosition) override;
 private:
     bool useHighAce(Cards card);
-    //std::vector<Cards> hand;
+    // std::vector<Cards> hand;
 };
 #endif /* Dealer_hpp */

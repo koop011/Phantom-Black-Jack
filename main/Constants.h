@@ -13,9 +13,10 @@ using std::string;
 
 namespace Constants
 {
-    const string invalidResponse= "\nThat's an invalid response! Please enter the correct value! \n";
+    const string invalidResponse = "\nThat's an invalid response! Please enter the correct value! \n";
+    const int blackJack = 21;
+    const int dealerHitThreshHold = 17;
 
 } // namespace constants
-
 
 #endif /* Constants_h */

@@ -14,26 +14,37 @@
 #include "CardManagement.hpp"
 #include <format>
 
-class Player {
+class Player
+{
 public:
-    Player (int playerPosition) {
+    Player(int playerPosition)
+    {
         name = std::format("Player {}", playerPosition);
     }
     std::string name;
-    std::vector<Cards> hand;    
+    std::vector<Cards> hand;
     virtual std::string getName();
-    bool lose = false;
+
     void receiveCard(Cards card);
     void showHand();
-    int checkTotal();
-    void checkWin();
+    int checkTotal(std::string name, bool result = false);
+    void playerLose();
     void tie();
     void checkHand();
     virtual void playTurn(CardManagement *CM, int playerPosition);
     void setName(int playerPosition);
     void playerWin();
     void playerDraw();
-    
+    bool getLose();
+    void setLose();
+    void setResult(bool result);
+    int getResult();
+
+private:
+    void setDraw();
+    bool draw = false;
+    bool lose = false;
+    int finalScore = 0;
 };
 
 #endif /* PlayerManager_hpp */

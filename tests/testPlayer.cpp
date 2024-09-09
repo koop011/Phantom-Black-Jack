@@ -1,4 +1,3 @@
-
 #include <boost/test/unit_test.hpp> // Boost test library
 int addNumber(int a, int b)
 {

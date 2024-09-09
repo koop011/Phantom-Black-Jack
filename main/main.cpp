@@ -11,131 +11,192 @@
 
 using std::string;
 
-enum gameState : u_char {
+enum gameState : u_char
+{
     menu,
     playing,
-    end
+    end,
+    endProgram
 };
 
-int addPlayers(gameState *state) {
+int addPlayers(gameState *state)
+{
     string userInput;
     bool inputGiven = false;
     int numberOfPlayers = 0;
     std::regex integer("(\\+|-)?[[:digit:]]+");
     // check if int is supplied
-    while (!inputGiven) {
+    while (!inputGiven)
+    {
         inputGiven = false;
         std::cout << "How many players? \n";
         std::cout << "[Insert number of players] \n";
         std::cin >> userInput;
-        
-        try {
+
+        try
+        {
             // TODO: match with regex so no input with number + string can be matched
             numberOfPlayers = stoi(userInput);
             inputGiven = true;
-        } catch (std::invalid_argument) {
+        }
+        catch (std::invalid_argument)
+        {
             std::cout << Constants::invalidResponse;
         }
     }
-    
+
     std::cout << std::format("Dealing cards for {} players. \n", userInput);
-    
+
     *state = gameState::playing;
     return numberOfPlayers;
 }
 
-//void removePlayerFromGame(std::vector<Player> players, Player player, int index){
-//    if (player.checkWin() || player.checkWin()){
-//        players.erase(players.begin() + index);
-//    }
-//}
-
-void gamePlay(gameState *state, int numberOfPlayers) {
+void gamePlay(gameState *state, int numberOfPlayers)
+{
     CardManagement CM;
-    
-//    Dealer dealer;
+
     std::vector<Player> players;
     int dealerPosition = numberOfPlayers; // size of players will give the final position in vector
     bool initialRound = true;
     Dealer dealer;
     int initialRoundOffSet = 2;
-    // pre-shuffled
-    //std::vector playDeck = CM.getDeck();
     CM.createDeck();
     CM.shuffle();
-    // debug
-    // CM.showDeck();
-    
-    for (int playerPosition = 0; playerPosition < numberOfPlayers; ++playerPosition) {
+
+    for (int playerPosition = 0; playerPosition < numberOfPlayers; ++playerPosition)
+    {
         Player singlePlayer(playerPosition);
         players.push_back(singlePlayer);
     }
-        
-    while (*state == gameState::playing) {
-        while (initialRound){
+
+    while (*state == gameState::playing)
+    {
+        while (initialRound)
+        {
             // initial hands deal
-            for (int initialDeal = 0; initialDeal < initialRoundOffSet; ++initialDeal){ // gives out 2 rounds of cards to players
-                for (auto& player : players){
-                    //if (&player != &players.back()) {
-                        player.receiveCard(CM.getCard());
-//                    } else {
-//
-//                    }
-                    
+            for (int initialDeal = 0; initialDeal < initialRoundOffSet; ++initialDeal)
+            { // gives out 2 rounds of cards to players
+                for (auto &player : players)
+                {
+                    // if (&player != &players.back()) {
+                    player.receiveCard(CM.getCard());
+                    //                    } else {
+                    //
+                    //                    }
                 }
                 dealer.receiveCard(CM.getCard());
             }
-            
+
             // dealer shows hand
             std::cout << "Dealers Hand: \n";
             dealer.showHand(initialRound);
             std::cout << "\n";
             initialRound = false;
         }
-        
+
         // reveal the players card on their turn
         // if receiving ace ask player to choose
-        
-        for (int playerPosition = 0; playerPosition < players.size(); ++playerPosition) {
-            
+
+        for (int playerPosition = 0; playerPosition < players.size(); ++playerPosition)
+        {
+
             std::cout << "------------------------------------------\n";
             std::cout << std::format("{}'s turn. \n", players[playerPosition].getName());
-            
+
             players[playerPosition].showHand();
             players[playerPosition].checkHand();
             players[playerPosition].playTurn(&CM, playerPosition);
         }
-        
+
         std::cout << "------------------------------------------\n";
         std::cout << std::format("{}'s turn. \n", dealer.getName());
         dealer.playTurn(&CM);
-        
-        for (Player player : players) {
-            if (!player.lose && (player.checkTotal() > dealer.checkTotal())) {
-                player.playerWin();
-            } else if (!player.lose && (player.checkTotal() > dealer.checkTotal())) {
-                player.playerDraw();
-            } else {
-                dealer.dealerWin();
+
+        std::cout << "\n------------------------------------------\n";
+        std::cout << "------------- Game Result -------------\n";
+        std::cout << "------------------------------------------\n";
+        bool resultState = true;
+        std::vector<Player> lostPlayers;
+        std::vector<Player> tiedPlayers;
+        std::vector<Player> wonPlayers;
+        dealer.setResult(resultState);
+
+        for (Player &player : players)
+        {
+            player.setResult(resultState);
+
+            if (player.getLose())
+            {
+                lostPlayers.push_back(player);
+            }
+            else if ((player.getResult() < dealer.getResult()) && !dealer.getLose())
+            {
+                lostPlayers.push_back(player);
+            }
+            else if (dealer.getLose())
+            {
+                wonPlayers.push_back(player);
+            }
+            else if ((player.getResult() > dealer.getResult()) && !dealer.getLose())
+            {
+                wonPlayers.push_back(player);
+            }
+            else
+            {
+                tiedPlayers.push_back(player);
             }
         }
+
+        for (Player player : lostPlayers)
+        {
+            player.playerLose();
+        }
+        for (Player player : tiedPlayers)
+        {
+            player.playerDraw();
+        }
+        for (Player player : wonPlayers)
+        {
+            player.playerWin();
+        }
+
+        std::cout << "\n------------------------------------------\n";
+        std::cout << "------------- Game END -------------\n";
+        std::cout << "------------------------------------------\n";
+
+        *state = gameState::end;
     }
+}
+
+void gameEnd(gameState *state)
+{
     // replay
     bool playAgain = false;
     string playAgainInput;
-    while (!playAgain){
+    while (!playAgain && *state == gameState::end)
+    {
         std::cout << "\nWould you like to play again? [y/n]\n";
         std::cin >> playAgainInput;
-        if (playAgainInput.compare("y") && playAgainInput.compare("n")){
-            std::cout << Constants::invalidResponse;
-        } else {
+        if (!playAgainInput.compare("y"))
+        {
             *state = gameState::menu;
+            playAgain = true;
+        }
+        else if (!playAgainInput.compare("n"))
+        {
+            std::cout << "Thanks for playing Phantom Jack! \n";
+            *state = gameState::endProgram;
+        }
+        else
+        {
+            std::cout << Constants::invalidResponse;
         }
     }
 }
 
-int main(int argc, const char * argv[]) {
-    
+int main(int argc, const char *argv[])
+{
+
     gameState state;
     int numberOfPlayers;
     std::cout << "<<------------------------------------------------------>> \n";
@@ -149,25 +210,27 @@ int main(int argc, const char * argv[]) {
     std::cout << "   Additionally, if any cards are hidden, it'll be represented with []. \n\n";
     std::cout << "As an example, the dealer will show 6 of spades and a hidden card as: \n";
     std::cout << "   e.g. Dealer has: 6S [] \n\n";
-    
+
     state = gameState::menu;
-    //state = gameState::playing;
-    
-    while (state != gameState::end){
-        switch (state) {
-            case gameState::menu:
-                numberOfPlayers = addPlayers(&state);
-                break;
-            case gameState::playing:
-                gamePlay(&state, numberOfPlayers);
-                break;
-            case gameState::end:
-                break;
-            default:
-                break;
+    // state = gameState::playing;
+
+    while (state != gameState::endProgram)
+    {
+        switch (state)
+        {
+        case gameState::menu:
+            numberOfPlayers = addPlayers(&state);
+            break;
+        case gameState::playing:
+            gamePlay(&state, numberOfPlayers);
+            break;
+        case gameState::end:
+            gameEnd(&state);
+            break;
+        default:
+            break;
         }
     }
-    
-    
+
     return 0;
 }
