@@ -1,10 +1,3 @@
-//
-//  Dealer.cpp
-//  blackJack
-//
-//  Created by Leo on 8/9/2024.
-//
-
 #include "Dealer.hpp"
 #include "Constants.h"
 #include <iostream>
@@ -37,14 +30,17 @@ void Dealer::playTurn(CardManagement *CM)
             std::cout << std::format("{} is hitting! \n", Dealer::getName());
             receiveCard(CM->getCard());
             showHand();
-            // checkTotal();
         }
-        else if (checkTotal(Dealer::getName()) > Constants::blackJack)
+
+        if (checkTotal(Dealer::getName()) > Constants::blackJack)
         {
+            std::cout << "--------------Dealer Turn End----------------\n";
+            dealerLose();
             lose = true;
         }
         else
         {
+            std::cout << "--------------Dealer Turn End----------------\n";
             std::cout << std::format("{} is staying! \n", Dealer::getName());
             stay = true;
             showHand();

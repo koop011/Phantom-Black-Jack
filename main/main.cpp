@@ -15,11 +15,12 @@ enum gameState : u_char
 {
     menu,
     playing,
+    result,
     end,
     endProgram
 };
 
-int addPlayers(gameState *state)
+void addPlayers(gameState *state, std::vector<Player> *players)
 {
     string userInput;
     bool inputGiven = false;
@@ -45,127 +46,119 @@ int addPlayers(gameState *state)
         }
     }
 
-    std::cout << std::format("Dealing cards for {} players. \n", userInput);
-
-    *state = gameState::playing;
-    return numberOfPlayers;
-}
-
-void gamePlay(gameState *state, int numberOfPlayers)
-{
-    CardManagement CM;
-
-    std::vector<Player> players;
-    int dealerPosition = numberOfPlayers; // size of players will give the final position in vector
-    bool initialRound = true;
-    Dealer dealer;
-    int initialRoundOffSet = 2;
-    CM.createDeck();
-    CM.shuffle();
-
     for (int playerPosition = 0; playerPosition < numberOfPlayers; ++playerPosition)
     {
         Player singlePlayer(playerPosition);
-        players.push_back(singlePlayer);
+        players->push_back(singlePlayer);
     }
+
+    std::cout << std::format("Dealing cards for {} players. \n", userInput);
+
+    *state = gameState::playing;
+}
+
+void gamePlay(gameState *state, std::vector<Player> *players, Dealer *dealer)
+{
+    CardManagement CM;
+    bool initialRound = true;
+    int playerPosition = 0;
+    int initialRoundOffSet = 2;
+    CM.createDeck();
+    CM.shuffle();
 
     while (*state == gameState::playing)
     {
         while (initialRound)
         {
             // initial hands deal
+            // gives out 2 rounds of cards to players
             for (int initialDeal = 0; initialDeal < initialRoundOffSet; ++initialDeal)
-            { // gives out 2 rounds of cards to players
-                for (auto &player : players)
+            {
+                for (auto &player : *players)
                 {
-                    // if (&player != &players.back()) {
                     player.receiveCard(CM.getCard());
-                    //                    } else {
-                    //
-                    //                    }
                 }
-                dealer.receiveCard(CM.getCard());
+                dealer->receiveCard(CM.getCard());
             }
 
-            // dealer shows hand
             std::cout << "Dealers Hand: \n";
-            dealer.showHand(initialRound);
+            dealer->showHand(initialRound);
             std::cout << "\n";
             initialRound = false;
         }
 
-        // reveal the players card on their turn
-        // if receiving ace ask player to choose
-
-        for (int playerPosition = 0; playerPosition < players.size(); ++playerPosition)
+        // players turn
+        for (Player player : *players)
         {
-
-            std::cout << "------------------------------------------\n";
-            std::cout << std::format("{}'s turn. \n", players[playerPosition].getName());
-
-            players[playerPosition].showHand();
-            players[playerPosition].checkHand();
-            players[playerPosition].playTurn(&CM, playerPosition);
+            player.playTurn(&CM, playerPosition);
+            playerPosition++;
         }
+        playerPosition = 0;
 
+        // dealers turn
         std::cout << "------------------------------------------\n";
-        std::cout << std::format("{}'s turn. \n", dealer.getName());
-        dealer.playTurn(&CM);
+        std::cout << std::format("{}'s turn. \n", dealer->getName());
+        dealer->playTurn(&CM);
 
-        std::cout << "\n------------------------------------------\n";
-        std::cout << "------------- Game Result -------------\n";
-        std::cout << "------------------------------------------\n";
-        bool resultState = true;
-        std::vector<Player> lostPlayers;
-        std::vector<Player> tiedPlayers;
-        std::vector<Player> wonPlayers;
-        dealer.setResult(resultState);
-
-        for (Player &player : players)
-        {
-            player.setResult(resultState);
-
-            if (player.getLose())
-            {
-                lostPlayers.push_back(player);
-            }
-            else if ((player.getResult() < dealer.getResult()) && !dealer.getLose())
-            {
-                lostPlayers.push_back(player);
-            }
-            else if (dealer.getLose())
-            {
-                wonPlayers.push_back(player);
-            }
-            else if ((player.getResult() > dealer.getResult()) && !dealer.getLose())
-            {
-                wonPlayers.push_back(player);
-            }
-            else
-            {
-                tiedPlayers.push_back(player);
-            }
-        }
-
-        for (Player player : lostPlayers)
-        {
-            player.playerLose();
-        }
-        for (Player player : tiedPlayers)
-        {
-            player.playerDraw();
-        }
-        for (Player player : wonPlayers)
-        {
-            player.playerWin();
-        }
-
-        std::cout << "\n------------------------------------------\n";
-        std::cout << "------------- Game END -------------\n";
-        std::cout << "------------------------------------------\n";
-
-        *state = gameState::end;
+        *state = gameState::result;
     }
+}
+
+void gameResult(gameState *state, std::vector<Player> *players, Dealer *dealer)
+{
+    std::cout << "\n------------------------------------------\n";
+    std::cout << "------------- Game Result -------------\n";
+    std::cout << "------------------------------------------\n";
+    bool resultState = true;
+    std::vector<Player> lostPlayers;
+    std::vector<Player> tiedPlayers;
+    std::vector<Player> wonPlayers;
+    dealer->setResult(resultState);
+
+    for (Player &player : *players)
+    {
+        player.setResult(resultState);
+
+        if (player.getLose())
+        {
+            lostPlayers.push_back(player);
+        }
+        else if ((player.getResult() < dealer->getResult()) && !dealer->getLose())
+        {
+            lostPlayers.push_back(player);
+        }
+        else if (dealer->getLose())
+        {
+            wonPlayers.push_back(player);
+        }
+        else if ((player.getResult() > dealer->getResult()) && !dealer->getLose() && player.getResult())
+        {
+            wonPlayers.push_back(player);
+        }
+        else
+        {
+            tiedPlayers.push_back(player);
+        }
+    }
+
+    for (Player player : lostPlayers)
+    {
+        player.playerLose();
+    }
+    for (Player player : tiedPlayers)
+    {
+        player.playerDraw();
+    }
+    for (Player player : wonPlayers)
+    {
+        player.playerWin();
+    }
+
+    std::cout << "\n------------------------------------------\n";
+    std::cout << "------------- Game END -------------\n";
+    std::cout << "------------------------------------------\n";
+
+    *state = gameState::end;
 }
 
 void gameEnd(gameState *state)
@@ -194,11 +187,20 @@ void gameEnd(gameState *state)
     }
 }
 
+void clearMemory(std::vector<Player> *players, Dealer *dealer)
+{
+    Dealer newDealer;
+    players->clear();
+    *dealer = newDealer;
+}
+
 int main(int argc, const char *argv[])
 {
 
     gameState state;
-    int numberOfPlayers;
+    std::vector<Player> players;
+    Dealer dealer;
+
     std::cout << "<<------------------------------------------------------>> \n";
     std::cout << "               Welcome to Phantom Black Jack \n";
     std::cout << "<<------------------------------------------------------>> \n\n";
@@ -212,20 +214,22 @@ int main(int argc, const char *argv[])
     std::cout << "   e.g. Dealer has: 6S [] \n\n";
 
     state = gameState::menu;
-    // state = gameState::playing;
 
     while (state != gameState::endProgram)
     {
         switch (state)
         {
         case gameState::menu:
-            numberOfPlayers = addPlayers(&state);
+            addPlayers(&state, &players);
             break;
         case gameState::playing:
-            gamePlay(&state, numberOfPlayers);
+            gamePlay(&state, &players, &dealer);
             break;
+        case gameState::result:
+            gameResult(&state, &players, &dealer);
         case gameState::end:
             gameEnd(&state);
+            clearMemory(&players, &dealer);
             break;
         default:
             break;

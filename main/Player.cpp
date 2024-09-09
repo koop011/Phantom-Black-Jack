@@ -46,7 +46,7 @@ void Player::playerDraw()
 void Player::playerLose()
 {
     std::cout << "---------------------\n";
-    std::cout << std::format("{}, You busted! \nTry again next time! \n", name);
+    std::cout << std::format("{}, You Lost! \nTry again next time! \n", name);
     std::cout << "---------------------\n";
 }
 

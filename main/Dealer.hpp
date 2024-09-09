@@ -20,17 +20,15 @@ public:
     }
     std::string name;
     void setName();
-    void showHand(bool initial = false); // override?
+    void showHand(bool initial = false);
     bool gameProgressCheck();
-    // void dealerWins();
     void playTurn(CardManagement *CM);
     void checkHand();
     void dealerWin();
     std::string getName();
     void dealerLose();
-    // void playTurn(CardManagement *CM, int playerPosition) override;
+
 private:
     bool useHighAce(Cards card);
-    // std::vector<Cards> hand;
 };
 #endif /* Dealer_hpp */
