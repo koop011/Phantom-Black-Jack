@@ -26,7 +26,7 @@ gameState addPlayers(gameState state, std::unique_ptr<std::vector<Player>> &play
     bool inputGiven = false;
     int numberOfPlayers = 0;
     std::regex integer("(\\+|-)?[[:digit:]]+");
-    // check if int is supplied
+
     while (!inputGiven)
     {
         inputGiven = false;
