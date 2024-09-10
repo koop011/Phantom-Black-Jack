@@ -30,10 +30,10 @@ void CardManagement::shuffle()
 
 void CardManagement::showDeck()
 {
-    std::cout << deck.size() << "\n";
+    std::cout << deck.size() << std::endl;
     for (int cards = 0; cards < deck.size(); ++cards)
     {
-        std::cout << deck[cards].toString() << "\n";
+        std::cout << deck[cards].toString() << std::endl;
     }
 }
 

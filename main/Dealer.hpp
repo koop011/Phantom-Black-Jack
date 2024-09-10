@@ -1,10 +1,3 @@
-//
-//  Dealer.hpp
-//  blackJack
-//
-//  Created by Leo on 8/9/2024.
-//
-
 #ifndef Dealer_hpp
 #define Dealer_hpp
 
@@ -14,19 +7,11 @@
 class Dealer : public Player
 {
 public:
-    Dealer() : Player(false)
-    {
-        name = "Dealer";
-    }
-    std::string name;
-    void setName();
+    Dealer() : Player(0, "Dealer") {}
     void showHand(bool initial = false);
-    bool gameProgressCheck();
-    void playTurn(CardManagement *CM);
-    void checkHand();
-    void dealerWin();
-    std::string getName();
-    void dealerLose();
+    void playTurn(CardManagement *CM, int playerPosition = 0) override;
+    void checkHand() override;
+    void playerLose() override;
 
 private:
     bool useHighAce(Cards card);

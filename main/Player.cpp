@@ -1,15 +1,8 @@
-//
-//  PlayerManager.cpp
-//  blackJack
-//
-//  Created by Leo on 8/9/2024.
-//
-
 #include <iostream>
 #include <string>
 #include "Player.hpp"
-#include <format>
 #include "Constants.h"
+#include <optional>
 
 using std::string;
 
@@ -32,22 +25,22 @@ void Player::showHand()
 void Player::playerWin()
 {
     std::cout << "**************\n";
-    std::cout << std::format("{} WON! \n\n", name);
+    std::cout << name + " WON! \n\n";
     std::cout << "**************\n";
 }
 
 void Player::playerDraw()
 {
     std::cout << "---------------\n";
-    std::cout << std::format("{} Draw with Dealer! Good luck next time!\n", name);
+    std::cout << name + " Draw with Dealer! Good luck next time!\n";
     std::cout << "---------------\n";
 }
 
 void Player::playerLose()
 {
     std::cout << "---------------------\n";
-    std::cout << std::format("{}, You Lost! \nTry again next time! \n", name);
-    std::cout << "---------------------\n";
+    std::cout << name + ", You Lost! \nTry again next time! \n";
+    std::cout << "---------------------" << std::endl;
 }
 
 int Player::checkTotal(string name, bool result)
@@ -59,7 +52,7 @@ int Player::checkTotal(string name, bool result)
     }
     if (!result)
     {
-        std::cout << std::format("\n{}'s hand total: {} \n", name, totalHandValue);
+        std::cout << name << "'s hand total: " << totalHandValue << " " << std::endl;
     }
 
     if (totalHandValue > Constants::blackJack)
@@ -94,6 +87,7 @@ void Player::checkHand()
                 }
                 else if (!userInput.compare("n"))
                 {
+                    hand[card].ranks = Cards::Ranks::LowAce;
                     inputValid = true;
                 }
                 else
@@ -112,7 +106,7 @@ void Player::playTurn(CardManagement *CM, int playerPosition)
     bool stay = false;
 
     std::cout << "------------------------------------------\n";
-    std::cout << std::format("{}'s turn. \n", getName());
+    std::cout << getName() << "'s turn. " << std::endl;
 
     showHand();
     checkHand();
@@ -126,8 +120,8 @@ void Player::playTurn(CardManagement *CM, int playerPosition)
         if (!hitOrStay.value().compare("h"))
         {
             receiveCard(CM->getCard());
-            checkHand();
             showHand();
+            checkHand();
 
             if (getLose())
             {
@@ -136,12 +130,13 @@ void Player::playTurn(CardManagement *CM, int playerPosition)
         }
         else if (!hitOrStay.value().compare("s"))
         {
-            std::cout << std::format("Player {} is staying with current hand! \n\n", playerPosition);
+            std::cout << "Player " << playerPosition << " is staying with current hand! \n"
+                      << std::endl;
             stay = true;
         }
         else
         {
-            std::cout << Constants::invalidResponse;
+            std::cout << Constants::invalidResponse << std::endl;
         }
     }
 }
@@ -159,11 +154,6 @@ bool Player::getLose()
 void Player::setLose()
 {
     lose = true;
-}
-
-void Player::setDraw()
-{
-    draw = true;
 }
 
 void Player::setResult(bool resultState)

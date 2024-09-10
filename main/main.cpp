@@ -1,13 +1,13 @@
 // Phantom Works Code Challenge 2024
 
 #include <iostream>
-#include <format>
 #include <string>
 #include "CardManagement.hpp"
 #include "Player.hpp"
 #include "Dealer.hpp"
 #include "Constants.h"
 #include <regex>
+#include <memory>
 
 using std::string;
 
@@ -20,7 +20,7 @@ enum gameState : u_char
     endProgram
 };
 
-void addPlayers(gameState *state, std::vector<Player> *players)
+gameState addPlayers(gameState state, std::unique_ptr<std::vector<Player>> &players)
 {
     string userInput;
     bool inputGiven = false;
@@ -31,7 +31,7 @@ void addPlayers(gameState *state, std::vector<Player> *players)
     {
         inputGiven = false;
         std::cout << "How many players? \n";
-        std::cout << "[Insert number of players] \n";
+        std::cout << "[Insert number of players]" << std::endl;
         std::cin >> userInput;
 
         try
@@ -52,12 +52,12 @@ void addPlayers(gameState *state, std::vector<Player> *players)
         players->push_back(singlePlayer);
     }
 
-    std::cout << std::format("Dealing cards for {} players. \n", userInput);
+    std::cout << "Dealing cards for " + userInput + " players." << std::endl;
 
-    *state = gameState::playing;
+    return gameState::playing;
 }
 
-void gamePlay(gameState *state, std::vector<Player> *players, Dealer *dealer)
+gameState gamePlay(gameState state, std::unique_ptr<std::vector<Player>> &players, std::unique_ptr<Dealer> &dealer)
 {
     CardManagement CM;
     bool initialRound = true;
@@ -66,7 +66,7 @@ void gamePlay(gameState *state, std::vector<Player> *players, Dealer *dealer)
     CM.createDeck();
     CM.shuffle();
 
-    while (*state == gameState::playing)
+    while (state == gameState::playing)
     {
         while (initialRound)
         {
@@ -74,48 +74,49 @@ void gamePlay(gameState *state, std::vector<Player> *players, Dealer *dealer)
             // gives out 2 rounds of cards to players
             for (int initialDeal = 0; initialDeal < initialRoundOffSet; ++initialDeal)
             {
-                for (auto &player : *players)
+                for (int i = 0; i < players->size(); i++)
                 {
-                    player.receiveCard(CM.getCard());
+                    players->at(i).receiveCard(CM.getCard());
                 }
                 dealer->receiveCard(CM.getCard());
             }
 
-            std::cout << "Dealers Hand: \n";
+            std::cout << "Dealers Hand: " << std::endl;
             dealer->showHand(initialRound);
-            std::cout << "\n";
             initialRound = false;
         }
 
+        std::cout << players->size() << " number players" << std::endl;
         // players turn
-        for (Player player : *players)
+        for (int i = 0; i < players->size(); ++i)
         {
-            player.playTurn(&CM, playerPosition);
+            players->at(i).playTurn(&CM, playerPosition);
             playerPosition++;
         }
         playerPosition = 0;
 
         // dealers turn
         std::cout << "------------------------------------------\n";
-        std::cout << std::format("{}'s turn. \n", dealer->getName());
+        std::cout << dealer->getName() + "'s turn. " << std::endl;
         dealer->playTurn(&CM);
 
-        *state = gameState::result;
+        state = gameState::result;
     }
+    return state;
 }
 
-void gameResult(gameState *state, std::vector<Player> *players, Dealer *dealer)
+gameState gameResult(gameState state, std::vector<Player> *players, std::unique_ptr<Dealer> &dealer)
 {
     std::cout << "\n------------------------------------------\n";
     std::cout << "------------- Game Result -------------\n";
-    std::cout << "------------------------------------------\n";
+    std::cout << "------------------------------------------" << std::endl;
     bool resultState = true;
     std::vector<Player> lostPlayers;
     std::vector<Player> tiedPlayers;
     std::vector<Player> wonPlayers;
     dealer->setResult(resultState);
 
-    for (Player &player : *players)
+    for (Player player : *players)
     {
         player.setResult(resultState);
 
@@ -131,7 +132,7 @@ void gameResult(gameState *state, std::vector<Player> *players, Dealer *dealer)
         {
             wonPlayers.push_back(player);
         }
-        else if ((player.getResult() > dealer->getResult()) && !dealer->getLose() && player.getResult())
+        else if ((player.getResult() > dealer->getResult()) && !dealer->getLose())
         {
             wonPlayers.push_back(player);
         }
@@ -156,42 +157,36 @@ void gameResult(gameState *state, std::vector<Player> *players, Dealer *dealer)
 
     std::cout << "\n------------------------------------------\n";
     std::cout << "------------- Game END -------------\n";
-    std::cout << "------------------------------------------\n";
+    std::cout << "------------------------------------------" << std::endl;
 
-    *state = gameState::end;
+    return gameState::end;
 }
 
-void gameEnd(gameState *state)
+gameState gameEnd(gameState state)
 {
     // replay
     bool playAgain = false;
     string playAgainInput;
-    while (!playAgain && *state == gameState::end)
+    while (!playAgain && state == gameState::end)
     {
-        std::cout << "\nWould you like to play again? [y/n]\n";
+        std::cout << "\nWould you like to play again? [y/n]" << std::endl;
         std::cin >> playAgainInput;
         if (!playAgainInput.compare("y"))
         {
-            *state = gameState::menu;
+            state = gameState::menu;
             playAgain = true;
         }
         else if (!playAgainInput.compare("n"))
         {
-            std::cout << "Thanks for playing Phantom Jack! \n";
-            *state = gameState::endProgram;
+            std::cout << "Thanks for playing Phantom Jack!" << std::endl;
+            state = gameState::endProgram;
         }
         else
         {
             std::cout << Constants::invalidResponse;
         }
     }
-}
-
-void clearMemory(std::vector<Player> *players, Dealer *dealer)
-{
-    Dealer newDealer;
-    players->clear();
-    *dealer = newDealer;
+    return state;
 }
 
 int main(int argc, const char *argv[])
@@ -199,8 +194,8 @@ int main(int argc, const char *argv[])
     // TODO Logging
     // TODO unit testing
     gameState state;
-    std::vector<Player> players;
-    Dealer dealer;
+    std::unique_ptr<std::vector<Player>> players = std::make_unique<std::vector<Player>>();
+    std::unique_ptr<Dealer> dealer = std::make_unique<Dealer>();
 
     std::cout << "<<------------------------------------------------------>> \n";
     std::cout << "               Welcome to Phantom Black Jack \n";
@@ -212,7 +207,8 @@ int main(int argc, const char *argv[])
     std::cout << "       e.g. King of Heart will be represented as KH. \n";
     std::cout << "   Additionally, if any cards are hidden, it'll be represented with []. \n\n";
     std::cout << "As an example, the dealer will show 6 of spades and a hidden card as: \n";
-    std::cout << "   e.g. Dealer has: 6S [] \n\n";
+    std::cout << "   e.g. Dealer has: 6S [] \n"
+              << std::endl;
 
     state = gameState::menu;
 
@@ -221,16 +217,17 @@ int main(int argc, const char *argv[])
         switch (state)
         {
         case gameState::menu:
-            addPlayers(&state, &players);
+            state = addPlayers(state, players);
             break;
         case gameState::playing:
-            gamePlay(&state, &players, &dealer);
+            state = gamePlay(state, players, dealer);
             break;
         case gameState::result:
-            gameResult(&state, &players, &dealer);
+            state = gameResult(state, players.get(), dealer);
         case gameState::end:
-            gameEnd(&state);
-            clearMemory(&players, &dealer);
+            state = gameEnd(state);
+            players->clear();
+            dealer.reset(new Dealer());
             break;
         default:
             break;

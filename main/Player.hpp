@@ -1,10 +1,3 @@
-//
-//  PlayerManager.hpp
-//  blackJack
-//
-//  Created by Leo on 8/9/2024.
-//
-
 #ifndef Player_hpp
 #define Player_hpp
 
@@ -12,27 +5,31 @@
 #include "Cards.hpp"
 #include <vector>
 #include "CardManagement.hpp"
-#include <format>
 
 class Player
 {
 public:
-    Player(int playerPosition)
+    Player(int playerPosition, std::string overrideName = "")
     {
-        name = std::format("Player {}", playerPosition);
+        if (!overrideName.empty())
+        {
+            name = overrideName;
+        }
+        else
+        {
+            name = "Player " + std::to_string(playerPosition);
+        }
     }
-    std::string name;
+
     std::vector<Cards> hand;
-    virtual std::string getName();
+    std::string getName();
 
     void receiveCard(Cards card);
     void showHand();
     int checkTotal(std::string name, bool result = false);
-    void playerLose();
-    void tie();
-    void checkHand();
+    virtual void playerLose();
+    virtual void checkHand();
     virtual void playTurn(CardManagement *CM, int playerPosition);
-    void setName(int playerPosition);
     void playerWin();
     void playerDraw();
     bool getLose();
@@ -41,10 +38,9 @@ public:
     int getResult();
 
 private:
-    void setDraw();
-    bool draw = false;
     bool lose = false;
     int finalScore = 0;
+    std::string name;
 };
 
 #endif /* PlayerManager_hpp */

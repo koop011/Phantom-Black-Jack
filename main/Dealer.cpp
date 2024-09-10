@@ -15,33 +15,34 @@ void Dealer::showHand(bool initial)
             std::cout << card.toString() << " ";
         }
     }
+    std::cout << "\n";
 }
 
-void Dealer::playTurn(CardManagement *CM)
+void Dealer::playTurn(CardManagement *CM, int playerPosition)
 {
     bool stay = false;
-    bool lose = Dealer::getLose();
+    bool lose = getLose();
 
     while (!stay && !lose)
     {
         checkHand();
-        if (checkTotal(Dealer::getName()) < Constants::dealerHitThreshHold)
+        if (checkTotal(getName()) < Constants::dealerHitThreshHold)
         {
-            std::cout << std::format("{} is hitting! \n", Dealer::getName());
+            std::cout << getName() + " is hitting!" << std::endl;
             receiveCard(CM->getCard());
             showHand();
         }
 
-        if (checkTotal(Dealer::getName()) > Constants::blackJack)
+        if (checkTotal(getName()) > Constants::blackJack)
         {
-            std::cout << "--------------Dealer Turn End----------------\n";
-            dealerLose();
+            std::cout << "--------------Dealer Turn End----------------" << std::endl;
+            playerLose();
             lose = true;
         }
-        else
+        else if (checkTotal(getName()) >= Constants::dealerHitThreshHold)
         {
-            std::cout << "--------------Dealer Turn End----------------\n";
-            std::cout << std::format("{} is staying! \n", Dealer::getName());
+            std::cout << "--------------Dealer Turn End----------------" << std::endl;
+            std::cout << getName() + " is staying! \n";
             stay = true;
             showHand();
         }
@@ -54,6 +55,7 @@ void Dealer::checkHand()
     {
         if (hand[card].ranks == Cards::Ranks::Ace)
         {
+            std::cout << getName() << " got an Ace!" << std::endl;
             if (useHighAce(hand[card]))
             {
                 hand[card].ranks = Cards::Ranks::HighAce;
@@ -65,33 +67,18 @@ void Dealer::checkHand()
 bool Dealer::useHighAce(Cards card)
 {
     int highAceOffSet = 10;
-    if ((checkTotal(name) + highAceOffSet) > Constants::dealerHitThreshHold)
+    if ((checkTotal(getName()) + highAceOffSet) > Constants::dealerHitThreshHold)
     {
+        std::cout << getName() << " is converting Ace to HighAce!" << std::endl;
         return true;
     }
+    std::cout << getName() << " choosing to stick with LowAce!" << std::endl;
     return false;
 }
 
-void Dealer::setName()
-{
-    name = "Dealer";
-}
-
-void Dealer::dealerLose()
+void Dealer::playerLose()
 {
     std::cout << "**************\n";
-    std::cout << std::format("{} LOST! \n\n", name);
+    std::cout << getName() + " LOST! \n";
     std::cout << "**************\n";
-}
-
-void Dealer::dealerWin()
-{
-    std::cout << "**************\n";
-    std::cout << std::format("{} WON! \n\n", name);
-    std::cout << "**************\n";
-}
-
-std::string Dealer::getName()
-{
-    return name;
 }

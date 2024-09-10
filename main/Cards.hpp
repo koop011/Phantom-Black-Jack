@@ -28,6 +28,7 @@ struct Cards
         Queen,
         King,
         HighAce,
+        LowAce
     };
 
     Ranks ranks;
@@ -37,7 +38,7 @@ struct Cards
     {
         static const std::string rankNames[] = {
             "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10",
-            "Jack", "Queen", "King"};
+            "Jack", "Queen", "King", "Ace", "Ace"};
         static const std::string suitNames[] = {
             "C", "D", "H", "S"};
         return rankNames[static_cast<int>(ranks)] + suitNames[static_cast<int>(suits)];
@@ -52,6 +53,10 @@ struct Cards
         else if (ranks == Ranks::HighAce)
         {
             return 11;
+        }
+        else if (ranks == Ranks::LowAce)
+        {
+            return 1;
         }
         else
         {
